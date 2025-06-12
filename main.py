@@ -28,7 +28,7 @@ def main():
 
     creatures = []
     for i in range(1):
-        c = create_life(f"Creature_{i}", 2, 3)
+        c = create_life(f"Creature_{i}", 20, 20)
         creatures.append(c)
 
 
@@ -40,6 +40,7 @@ def main():
 
 
     while running:
+        tick = pygame.time.get_ticks() // 16  # ~60fps → 1 tick ≈ 16ms
         screen.fill((255, 255, 255))
         for screen_y in range(GRID_HEIGHT):
             for screen_x in range(GRID_WIDTH):
@@ -83,6 +84,7 @@ def main():
                     camera_y += 1
         
         for creature in creatures:
+            creature.update(environment_cache, tick)
             creature.render(screen, camera_x, camera_y)
 
         pygame.display.flip()
