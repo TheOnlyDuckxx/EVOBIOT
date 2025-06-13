@@ -31,7 +31,7 @@ class Genome:
     def to_stats(self):
         return {
             "speed": self.data[4] / 255,
-            "vision": self.data[5] % 3,
+            "vision": 1 + self.data[5] % 4 + 1,
             "energy": self.data[6] / 20 * 100 ,
 
         }

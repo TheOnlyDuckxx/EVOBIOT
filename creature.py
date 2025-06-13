@@ -1,6 +1,7 @@
 import pygame
-from random import choice
-from config import CELL_SIZE, GRID_WIDTH, GRID_HEIGHT
+from random import choice, random
+from config import CELL_SIZE, SEED
+from environment import Cellule
 
 class Creature:
     def __init__(self, name,lifespan, energy, speed, genome, vision_range, behaviors, x, y, age=0):
@@ -13,15 +14,17 @@ class Creature:
         self.vision_range = vision_range
         self.behaviors = behaviors
         self.is_alive = True
+        self.last_cell = None
         self.cell_x = x
         self.cell_y = y
         self.last_move_time = 0
-        self.move_delay = int(20 - self.speed * 16)
+        self.move_delay = int(20 - self.speed)
         self.move_delay = max(self.move_delay, 1)  # sécurité
 
     
     def move(self, dx, dy):
         if self.energy > 0:
+            self.last_cell = (self.cell_x, self.cell_y)
             self.cell_x += dx
             self.cell_y += dy
             self.energy -= 0.2 
@@ -43,6 +46,8 @@ class Creature:
                 score += 2
             elif cell.cell_type == "eau":
                 score -= 100  # interdit
+            if (self.cell_x + dx, self.cell_y + dy) == self.last_cell:
+                score -= 10
 
             # Influencé par les traits comportementaux
             score += self.behaviors["curiosity"] * 10
@@ -55,6 +60,11 @@ class Creature:
         if best_score <= 0:
             # Mouvement aléatoire
             return choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
+        
+        if best_score < 10:
+            if random() < self.behaviors["curiosity"] + 0.1:
+                return choice([(0, 1), (1, 0), (0, -1), (-1, 0)])
+
         # Normaliser à une seule case de mouvement
         dx, dy = best_dir
         if dx != 0:
@@ -123,8 +133,8 @@ class Creature:
     
     def age_tick(self):
         self.age += 1
-        self.energy -= 1
-        if self.age > self.lifespan or self.energy <= 0:
+        self.energy -= 0.01
+        if self.energy <= 0:
             self.die()
     
     def get_visible_cells(self, environment_cache):
@@ -142,6 +152,14 @@ class Creature:
     def update(self, environment_cache, current_tick):
         self.age_tick()
 
+        if current_tick - self.last_move_time >= self.move_delay :
+            for dy in range(-self.vision_range, self.vision_range + 1):
+                for dx in range(-self.vision_range, self.vision_range + 1):
+                    x, y = self.cell_x + dx, self.cell_y + dy
+                    key = (x, y)
+                    if key not in environment_cache:
+                        environment_cache[key] = Cellule(x, y, seed=SEED)
+
         # Déplacement
         if current_tick - self.last_move_time >= self.move_delay:
             visible = self.get_visible_cells(environment_cache)
@@ -153,4 +171,3 @@ class Creature:
             current_key = (self.cell_x, self.cell_y)
             if current_key in environment_cache:
                 self.eat(environment_cache[current_key])
-

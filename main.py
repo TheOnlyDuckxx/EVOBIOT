@@ -3,7 +3,7 @@ from random import *
 from genome import Genome
 from creature import Creature
 from environment import Cellule
-from config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE, VISIBLE_RADIUS
+from config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE, VISIBLE_RADIUS, SEED
 
 def create_life(name, x, y):
     genome = Genome()
@@ -30,10 +30,6 @@ def main():
     for i in range(1):
         c = create_life(f"Creature_{i}", 20, 20)
         creatures.append(c)
-
-
-
-    SEED = randint(0, 10000)
 
     environment_cache = {}
     camera_x, camera_y = 0, 0
