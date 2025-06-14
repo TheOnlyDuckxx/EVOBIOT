@@ -9,7 +9,7 @@ def create_life(name, x, y):
     genome = Genome()
     stats = genome.to_stats()
     behaviors = genome.to_behavior()
-    return Creature(name=name, age=0, lifespan=100, energy=stats["energy"], speed=stats["speed"], genome=genome, vision_range=stats["vision"], behaviors=behaviors, x=x, y=y)
+    return Creature(name=name, age=0, energy=stats["energy"], speed=stats["speed"], genome=genome, vision_range=stats["vision"], behaviors=behaviors, x=x, y=y)
 
 def draw_grid(screen, spacing=40, color=(200, 200, 200)):
     width, height = screen.get_size()
@@ -27,8 +27,8 @@ def main():
     running = True
 
     creatures = []
-    for i in range(1):
-        c = create_life(f"Creature_{i}", 20, 20)
+    for i in range(3):
+        c = create_life(f"Creature_{i}", randint(18,20), randint(18,20))
         creatures.append(c)
 
     environment_cache = {}
@@ -36,7 +36,7 @@ def main():
 
 
     while running:
-        tick = pygame.time.get_ticks() // 16  # ~60fps → 1 tick ≈ 16ms
+        tick = pygame.time.get_ticks() // 16
         screen.fill((255, 255, 255))
         for screen_y in range(GRID_HEIGHT):
             for screen_x in range(GRID_WIDTH):
@@ -79,9 +79,21 @@ def main():
                 elif event.key == pygame.K_DOWN:
                     camera_y += 1
         
+        new_creatures = []
+
         for creature in creatures:
             creature.update(environment_cache, tick)
+            for other in creatures:
+                if other is creature:
+                    continue
+
+                child = creature.interact(other)
+                if child:
+                    new_creatures.append(child)
+
             creature.render(screen, camera_x, camera_y)
+        
+        creatures.extend(new_creatures)
 
         pygame.display.flip()
         clock.tick(60)
